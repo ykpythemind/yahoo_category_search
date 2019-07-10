@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.4.5/fuse.min.js"></script>
+<style type="text/css">
+p { line-height:1.1; }
+</style>
+    <script type="text/javascript">
+        var data;
+        var fuse;
+        var input;
+
+        var onSearch = function() {
+                    var result = fuse.search(input.value);
+                    console.log(result)
+
+                    var re = document.getElementById("result")
+                    re.innerHTML = ''
+                    result.forEach((elm, i) => {
+                        if (i > 50) {
+                            return
+                        }
+                        var s = document.createElement('p')
+                        s.innerHTML = "<span><b>" + elm.item.id + "</b></span> (" + elm.score + ")" + elm.item.original;
+                        re.appendChild(s)
+                    })
+        }
+        window.onSearch = onSearch
+
+        window.onload = () => {
+            fetch('yahoo.json')
+            .then( response => response.json() )
+            .then( json => {
+                data = json.map((e) => {
+                    // >を空白にしておく. オークション という文字が不要なのでそれも消す
+                    var arr = e.name.split('>').slice(1).map((e) => e.trim() )
+                    return { id: e.id, name: arr.join(" "), original: e.name }
+                });
+
+                console.log("init")
+                console.log(data)
+
+                var options = {
+                    shouldSort: true,
+                    threshold: 0.6,
+                    includeScore: true,
+                    location: 0,
+                    distance: 100,
+                    maxPatternLength: 32,
+                    minMatchCharLength: 1,
+                    keys: [
+                        "name",
+                    ]
+                };
+                fuse = new Fuse(data, options); // "list" is the item array
+                input = document.getElementById("categoryInput");
+                var button = document.getElementById("btn")
+                button.addEventListener("click", window.onSearch)
+            })
+
+        }
+    </script>
+</head>
+<body>
+
+    <h1>yahoo</h1>
+
+    <form onsubmit="onSearch(); return false;">
+        <input name="search" type="text" id="categoryInput">
+        <input type="button" id="btn" value="検索">
+    </form>
+
+    <div id="result">
+
+    </div>
+</body>
+</html>
